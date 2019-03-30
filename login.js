@@ -489,7 +489,7 @@ function loginParser(req ,rres){
                                                 {
                                                     "type": "postback",
                                                     "label": "允許",
-                                                    "data": "send=1"+"&boxid="+msgid+"&line_id="+post.events[0].source.userId
+                                                    "data": "send=1"+"&boxid="+box_id+"&line_id="+post.events[0].source.userId
                                                 }                                         
                                             ]
                                         }
@@ -607,12 +607,16 @@ function loginParser(req ,rres){
                                             "actions": [
                                                 {
                                                     "type": "postback",
-                                                    "label": "允許增加"+recpt[0].nickname_or_mark+":mail:"+recpt[0].email+":box:"+box_id,
-                                                    "data": "send=1"+"&boxid="+post.events[0].message.text+"&line_id="+post.events[0].source.userId
+                                                    "label": "允許",
+                                                    "data": "send=1"+"&boxid="+box_id+"&line_id="+post.events[0].source.userId
                                                 }                                            
                                             ]
                                         }
                                     };
+                                    let text ={
+                                        "type":"text",
+                                        "text":recpt[0].nickname_or_mark+":mail:"+recpt[0].email+":box:"+box_id
+                                    }
                                 
                                     pushToSuv([reply_button]);
 
