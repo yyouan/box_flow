@@ -172,7 +172,7 @@ function psql(command){
 function loginParser(req ,rres){
     //route
     var nwimg;
-    const domain="https://angleline-hall.herokuapp.com";  
+    const domain="https://boxflow.herokuapp.com";  
     //var adrr="/";
     
     // 定义了一个post变量，用于暂存请求体的信息
@@ -767,7 +767,7 @@ function FormReceiver(req,rres){
                                             "action": {
                                                 "type": "uri",
                                                 "label": "按我傳圖片",
-                                                "uri": "https://angleline-hall.herokuapp.com/imgGiver"
+                                                "uri": "https://boxflow.herokuapp.com/imgGiver"
                                             },
                                             "style": "primary",
                                             "color": "#ff3333"
