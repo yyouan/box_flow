@@ -412,8 +412,7 @@ function loginParser(req ,rres){
                                             "text":""
                                         }
                                         text.text ="您似乎使用和他人相同的電子郵件，請換個郵件註冊!\n有問題請洽詢問站";
-                                        replymessage([text]);
-                                        channel_array.push(line_id);                        
+                                        replymessage([text]);                                                                
                                     }
                                     rres.end("OK")
                                 });
@@ -433,7 +432,8 @@ function loginParser(req ,rres){
                                     "type":"text",
                                     "text":"暫未開放隨便聊天，敬請見諒"
                                 }
-                                replymessage([text]); 
+                                replymessage([text]);
+                                channel_array.push(line_id); 
                                 rres.end("OK")                     
                         }    
                     });                    
