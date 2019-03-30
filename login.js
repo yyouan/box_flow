@@ -6,6 +6,7 @@ var CHANNEL_ACCESS_TOKEN = ["bqdkQdplTECriQ225N+frhzctNQVXWoNoFPRD4mH2WSPHM8nhM5
 
 var channel_array =[];
 var pay_array =[];
+var withdraw_array =[];
 var channel_array_2 ={};
 var channel_array_3 ={};
 const { Pool } = require('pg');
@@ -460,13 +461,24 @@ function loginParser(req ,rres){
                             "text":"替菜單取個名字:"
                         }
                         replymessage([text]);
-                    }else if(post.events[0].message.text == '@支付'){
-                        channel_array_2[post.events[0].source.userId]="支付";
-                        let text = {
-                            "type":"text",
-                            "text":"輸入金額:"
-                        }
-                        replymessage([text]);
+                    }else if(post.events[0].message.text == '@領錢'){
+                                               
+                        if(pay_array.length == 0){
+                            var text_2 = {
+                                "type":"text",
+                                "text":"長按按鈕，開始領錢"
+                            }
+                            
+                            pay_array.push(post.events[0].source.userId);
+                        }else{
+                            var text_2 = {
+                                "type":"text",
+                                "text":"有人在領錢請排隊"
+                            }
+                        }                             
+                        
+                        withdraw_array.push(post.events[0].source.userId);
+                        replymessage([text2]);
                     }
                     else if(post.events[0].message.text == '@儲值'){
                         
@@ -1016,12 +1028,60 @@ app.post('/deposit', (req,rres)=>{
                 );
                 psql("INSERT INTO "+msg.box_id+"_cash (cash_id) VALUES (\'"
                 +msg.deposit+"\');");
-                psql("INSERT INTO cash (id,line_id_in) VALUES (\'"
-                +msg.deposit+"\',\'"+line_id+"\');");
+                psql("INSERT INTO cash (id,line_id_in,line_id_out) VALUES (\'"
+                +msg.deposit+"\',\'"+line_id+"\',\'\');");
                 
         }else{
             rres.end("OK")
         }
     });
+    
+});
+
+app.post('/withdraw', (req,rres)=>{
+
+    // 通过req的data事件监听函数，每当接受到请求体的数据，就累加到post变量中
+    let post='';
+    console.log('post')
+    req.on('data', function(chunk){
+        console.log('data')   
+        post += chunk;
+
+        // Too much POST data, kill the connection!(avoid server attack)
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (post > 1e6){
+                request.connection.destroy();
+                console.log("!!!!!!!!!FLOD Attack!!!!!!!!");
+            }
+    });
+    
+    req.on('end', function(){
+        
+        msg = JSON.parse(post);
+          
+        // 通过req的data事件监听函数，每当接受到请求体的数据，就累加到post变量中
+        if(withdraw_array.length !=0){
+            let line_id = withdraw_array[0];
+            withdraw_array = [];
+            psql("SELECT * FROM CLIENT WHERE line_id=\'"+line_id+"\';").then(
+                clients =>{
+                    psql("SELECT * FROM "+msg.box_id+"_cash\';").then(
+                        cashes =>{
+                            if(clients[0].balance >= 100*cashes.length){
+                                for(cash of cashes){
+                                    psql("UPDATE CASH SET line_id_out=\'"+ line_id +"\' WHERE id=\'" + cash.cash_id +"\' and line_id_out='';")
+                                }
+                                rres.end("OK");
+                            }else{
+                                rres.end("NOT OK")
+                            }                            
+                        }
+                    )                    
+                }
+            )
+        }else{
+            rres.end("NOT OK");
+        }
+   });    
     
 });
