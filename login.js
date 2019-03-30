@@ -589,7 +589,7 @@ function loginParser(req ,rres){
                                 
                             }else if(channel_array_2[post.events[0].source.userId]=="輸入箱子"){
 
-                                psql("UPDATE BOX SET menu_name="+ channel_array_3[post.events[0].source.userId]  +" WHERE box_id=\'"+post.events[0].message.text+"\';").then(recpt=>{
+                                psql("UPDATE BOX SET menu_name=\'"+ channel_array_3[post.events[0].source.userId]  +"\' WHERE box_id=\'"+post.events[0].message.text+"\';").then(recpt=>{
 
                                     let text = {
                                         "type":"text",
