@@ -818,7 +818,7 @@ function imgReceiver(req,rres){
         psql("SELECT * FROM CLIENT WHERE email=\'"+post.email+"\';").then(
             members =>{
                 let gate = false;
-                if(members[0].head_url.replace(/\s+/g, "")=='https://i.imgur.com/PAoZtFc.jpg'){
+                if(members[0].face_url.replace(/\s+/g, "")=='https://i.imgur.com/PAoZtFc.jpg'){
                     gate = true;
                 }
                 
