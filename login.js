@@ -539,7 +539,7 @@ function loginParser(req ,rres){
                 "type":"text",
                 "text":"請點選上面的按鈕，進到瀏覽器註冊，之後注意andriod手機請點選open in other app(如下圖)，iOS則不用"
             }
-            replymessage(text);
+            replymessage([text]);
             if(false){
                 
                 if(channel_array.indexOf(line_id)== -1){
