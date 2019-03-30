@@ -5,9 +5,15 @@ const querystring = require('querystring');
 var CHANNEL_ACCESS_TOKEN = ["bqdkQdplTECriQ225N+frhzctNQVXWoNoFPRD4mH2WSPHM8nhM5cQJspmyB4vGcdCXaQXbpTeuFwdSwk/APQSl66BifptuEXg+e2MwfZgbnSN7V1P0xl431M3gEs9yidGe4V+lcqIaBGyRxaXlHlTQdB04t89/1O/w1cDnyilFU="];
 
 var channel_array =[];
+var channel_array_2 ={};
+var channel_array_3 ={};
 const { Pool } = require('pg');
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+    //ssl: true,
+});
+const pool_2 = new Pool({
+    connectionString: process.env.HEROKU_POSTGRESQL_CRIMSON_URL,
     //ssl: true,
 });
 
@@ -22,29 +28,59 @@ app.post('/img',imgReceiver);
 app.post('/check',checkReceiver);
 //app.get('/uploadhtml',UploadPage_giver)
 app.post('')
-/**
- * expected result:
- *  user:@ok     
- *  bot:googleform
- *  user:done
- * 
+
+/**SQL
+ *  email | phone | nickname_or_mark | balance | cash_array | line_id
+-------+-------+--------------+------------------+---------+------------
  */
 
-//SQL
-/**
-     angle_nickname |   angle_id    | master_name     |master_group|  master_id   | department | email              | head_url |self_intro|name  |phone           |score  |ticket |Group|problem|location_problem|problem_count|location_count                      
-    ----------------+---------------+-----------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    友安            | 0123456789012 | 另友安           |        7   | 123456789012 | phys/psy   |xu.6u.30@gmail.com  |url      |longtext  |劉友安 |0926372361       |0      |0      |  8  |0      |0              |      <6       |     <6 
-    /
-*/  
 
 //login message with recpt function:
 function create_member(email,line_id){
-    psql("INSERT INTO ACCOUNT (email,angle_id,self_intro,angle_nickname,master_id,master_name,head_url,department,problem,location_problem,score,problem_count,location_count,ticket,groupindex,name,phone) VALUES (\'"
-    +email+"\',\'"+line_id+"\',\'none\',\'預設某個人\',\'\',\'\',\'https://i.imgur.com/PAoZtFc.jpg\',\'phys\',"+
-    Math.floor(6*Math.random())+","+Math.floor(6*Math.random())
-    +",0,0,0,0,9,\'none\',\'none\');")    
+    psql("INSERT INTO CLIENT (email,line_id,face_url,phone,nickname_or_mark,balance,cash_array) VALUES (\'"
+    +email+"\',\'"+line_id+"\',\'https://i.imgur.com/PAoZtFc.jpg\',\'\',\'\',0,\'\');");    
 }
+
+function pushToSuv(recpt){
+
+    psql_2("SELECT * FROM SUPERVISOR;").then(
+  
+      (groups) =>{
+  
+        for(group of groups){
+  
+          recpt.forEach(element => {
+            console.log("pushmessage:"+element);
+          });
+          for(let token of InfoTokens){
+
+            var options = {
+                url: "https://api.line.me/v2/bot/message/push",
+                method: 'POST',
+                headers: {
+                  'Content-Type':  'application/json', 
+                  'Authorization':'Bearer ' + token
+                },
+                json: {
+                    "to": group.group_id.replace(/\s+/g, ""),
+                    'messages': recpt
+                }
+              };
+            console.log(options);
+            request(options, function (error, response, body) {
+                if (error) throw error;
+                console.log("(line)");
+                console.log(body);
+            });
+
+          }
+          
+  
+        }      
+      }
+    );
+  }
+
 function pushmessage(recpt,id){
 
     recpt.forEach(element => {
@@ -74,7 +110,35 @@ function pushmessage(recpt,id){
     }    
   
 }
-
+function psql_2(command){
+   
+    return new Promise((resolve,reject)=>{
+        //while(is_conn_psql){console.log("(psql):pararell gate");};
+        //if(!is_conn_psql){client.connect();is_conn_psql = true;}
+        let recpt =[];
+        let error;
+        console.log("(psql):" + command );
+        pool_2.connect()
+        .then(client=>{            
+            client.query(command)
+            .then(res => {
+                client.release();
+                for (let row of res.rows) {                
+                    recpt.push(row);
+                    console.log( "(psql-query):"+ JSON.stringify(row));
+                }
+                resolve(recpt);
+                for(let row of recpt){
+                    console.log( "(psql-query-recpt):"+ JSON.stringify(row));
+                }
+                console.log( "(psql-query-recpt):"+ recpt.length);    
+            })
+            .catch(e => {client.release(); console.error("(psql):" + e.stack);reject(e);});            
+        });
+    });
+    
+    
+}
 function psql(command){
    
     return new Promise((resolve,reject)=>{
@@ -140,344 +204,13 @@ function loginParser(req ,rres){
             let data = querystring.parse(rawdata);
 
             if("url" in data) {
-                psql("SELECT * FROM ACCOUNT WHERE angle_id=\'"+line_id+"\';").then(
+                psql("SELECT * FROM CLINET WHERE line_id=\'"+line_id+"\';").then(
                     members =>{
 
                         let gate = false;
                         if(members[0].head_url.replace(/\s+/g, "")=='https://i.imgur.com/PAoZtFc.jpg'){gate=true};
 
-                        psql("UPDATE ACCOUNT SET head_url=\'"+ data.url +"\' WHERE angle_id=\'" + line_id +"\';").then(
-                            res=>{
-                                let text2 = {
-                                    "type":"text",
-                                    "text":"已選取圖片"
-                                }
-                                
-                                let bubble ={
-                                    "type": "bubble",
-                                    "header": {
-                                      "type": "box",
-                                      "layout": "vertical",
-                                      "contents": [
-                                        {
-                                          "type": "text",
-                                          "text": "你的小天使"
-                                        }
-                                      ]
-                                    },
-                                    "hero": {
-                                      "type": "image",
-                                      "url": data.url,
-                                    },
-                                    "body": {
-                                      "type": "box",
-                                      "layout": "vertical",
-                                      "contents": [
-                                        
-                                            {//暱稱
-                                                "type": "text",
-                                                "text": "暱稱： "+members[0].angle_nickname.replace(/\s+/g, ""),
-                                              },
-                                      ]
-                                    }
-                                    
-                                };
-                                
-                                let self_intro =                
-                                {//自我介紹
-                                    "type": "text",
-                                    "text": "自我介紹： "+ members[0].self_intro,
-                                };
-        
-                                let msg2 ={  
-                                    "type": "flex",
-                                    "altText": "大講堂有消息，請借台手機開啟",
-                                    "contents":bubble 
-                                };
-                                
-                                let msg =[text2,msg2,self_intro];
-                                
-                                if(gate){
-
-                                    let text ={
-                                        "type":"text",
-                                        "text":""
-                                    }
-                                    text.text ="成功註冊!";
-                                    msg.push(text);
-                                    var ad_msg_angle;
-                                    var ad_msg_info;
-                                    var ad_msg_master;
-                                    if( members[0].department.replace(/\s+/g, "") == "psy"){
-
-                                        ad_msg_angle = {  
-                                            "type": "flex",
-                                            "altText": "大講堂有消息，請借台手機開啟",
-                                            "contents":
-                                                {
-                                                    "type": "bubble",
-                                                    "header": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "text",
-                                                        "text": "按按鈕加小天使為好友"
-                                                        }
-                                                    ]
-                                                    },
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": "https://i.imgur.com/4Ut09xB.jpg", //use 圖片位址
-                                                    } ,
-                                                    "footer": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "spacer",
-                                                        "size": "xl"
-                                                        },
-                                                        {
-                                                        "type": "button",
-                                                        "action": {
-                                                            "type": "uri",
-                                                            "label": "按我加好友",
-                                                            "uri": "https://line.me/R/ti/p/%40hnc0868c"
-                                                        },
-                                                        "style": "primary",
-                                                        "color": "#ff3333"
-                                                        }
-                                                    ]
-                                                    }             
-                                                }
-                                        };
-                                        ad_msg_master = {  
-                                            "type": "flex",
-                                            "altText": "大講堂有消息，請借台手機開啟",
-                                            "contents":
-                                                {
-                                                    "type": "bubble",
-                                                    "header": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "text",
-                                                        "text": "按按鈕加小主人為好友"
-                                                        }
-                                                    ]
-                                                    },
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": "https://i.imgur.com/vQB9JKi.jpg", //use 圖片位址
-                                                    } ,
-                                                    "footer": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "spacer",
-                                                        "size": "xl"
-                                                        },
-                                                        {
-                                                        "type": "button",
-                                                        "action": {
-                                                            "type": "uri",
-                                                            "label": "按我加好友",
-                                                            "uri": "https://line.me/R/ti/p/%40rpu9491f"
-                                                        },
-                                                        "style": "primary",
-                                                        "color": "#ff3333"
-                                                        }
-                                                    ]
-                                                    }             
-                                                }
-                                        };
-                                        ad_msg_info = {  
-                                            "type": "flex",
-                                            "altText": "大講堂有消息，請借台手機開啟",
-                                            "contents":
-                                                {
-                                                    "type": "bubble",
-                                                    "header": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "text",
-                                                        "text": "按按鈕加詢問站為好友"
-                                                        }
-                                                    ]
-                                                    },
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": "https://i.imgur.com/xffIZIN.jpg", //use 圖片位址
-                                                    } ,
-                                                    "footer": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "spacer",
-                                                        "size": "xl"
-                                                        },
-                                                        {
-                                                        "type": "button",
-                                                        "action": {
-                                                            "type": "uri",
-                                                            "label": "按我加好友",
-                                                            "uri": "https://line.me/R/ti/p/%40hbl3061e"
-                                                        },
-                                                        "style": "primary",
-                                                        "color": "#ff3333"
-                                                        }
-                                                    ]
-                                                    }             
-                                                }
-                                        };
-
-                                    }else{
-
-                                        ad_msg_angle = {  
-                                            "type": "flex",
-                                            "altText": "大講堂有消息，請借台手機開啟",
-                                            "contents":
-                                                {
-                                                    "type": "bubble",
-                                                    "header": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "text",
-                                                        "text": "按按鈕加小天使為好友"
-                                                        }
-                                                    ]
-                                                    },
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": "https://i.imgur.com/4Ut09xB.jpg", //use 圖片位址
-                                                    } ,
-                                                    "footer": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "spacer",
-                                                        "size": "xl"
-                                                        },
-                                                        {
-                                                        "type": "button",
-                                                        "action": {
-                                                            "type": "uri",
-                                                            "label": "按我加好友",
-                                                            "uri": "https://line.me/R/ti/p/%40zpf3150n"
-                                                        },
-                                                        "style": "primary",
-                                                        "color": "#ff3333"
-                                                        }
-                                                    ]
-                                                    }             
-                                                }
-                                        };
-                                        ad_msg_master = {  
-                                            "type": "flex",
-                                            "altText": "大講堂有消息，請借台手機開啟",
-                                            "contents":
-                                                {
-                                                    "type": "bubble",
-                                                    "header": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "text",
-                                                        "text": "按按鈕加小主人為好友"
-                                                        }
-                                                    ]
-                                                    },
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": "https://i.imgur.com/vQB9JKi.jpg", //use 圖片位址
-                                                    } ,
-                                                    "footer": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "spacer",
-                                                        "size": "xl"
-                                                        },
-                                                        {
-                                                        "type": "button",
-                                                        "action": {
-                                                            "type": "uri",
-                                                            "label": "按我加好友",
-                                                            "uri": "https://line.me/R/ti/p/%40dwg5277m"
-                                                        },
-                                                        "style": "primary",
-                                                        "color": "#ff3333"
-                                                        }
-                                                    ]
-                                                    }             
-                                                }
-                                        };
-                                        ad_msg_info = {  
-                                            "type": "flex",
-                                            "altText": "大講堂有消息，請借台手機開啟",
-                                            "contents":
-                                                {
-                                                    "type": "bubble",
-                                                    "header": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "text",
-                                                        "text": "按按鈕加詢問站為好友"
-                                                        }
-                                                    ]
-                                                    },
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": "https://i.imgur.com/xffIZIN.jpg", //use 圖片位址
-                                                    } ,
-                                                    "footer": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "spacer",
-                                                        "size": "xl"
-                                                        },
-                                                        {
-                                                        "type": "button",
-                                                        "action": {
-                                                            "type": "uri",
-                                                            "label": "按我加好友",
-                                                            "uri": "https://line.me/R/ti/p/%40vdg2092y"
-                                                        },
-                                                        "style": "primary",
-                                                        "color": "#ff3333"
-                                                        }
-                                                    ]
-                                                    }             
-                                                }
-                                        };
-                                    }
-                                                                                   
-                                    
-                                    pushmessage([ad_msg_angle,ad_msg_master,ad_msg_info],line_id);
-                                    
-                                
-                                setTimeout(() => {
-                                    pushmessage(msg,line_id);
-                                }, 3000);
-                                rres.end("OK")
-                              } 
-                            }                    
-                        )
+                        
                         
                     }
                 )
@@ -489,11 +222,11 @@ function loginParser(req ,rres){
             
             let text = {
                 "type":"text",
-                "text":"感謝您加入遊戲，請輸入您註冊的電子郵件地址(如：xu.6u.30@gmail.com):"
+                "text":"感謝您加入boxflow，請輸入您註冊的電子郵件地址(如：xu.6u.30@gmail.com):"
             }
             var ad_youtube = {  
                 "type": "flex",
-                "altText": "大講堂有消息，請借台手機開啟",
+                "altText": "boxflow有消息，請借台手機開啟",
                 "contents":
                     {
                         "type": "bubble",
@@ -534,24 +267,18 @@ function loginParser(req ,rres){
         }
 
         if (posttype == 'message'){
-
-            let text = {
-                "type":"text",
-                "text":"請點選上面的按鈕，進到瀏覽器註冊，之後注意andriod手機請點選open in other app(如下圖)，iOS則不用"
-            }
-            replymessage([text]);
-            rres.end("OK");
-            if(false){
+                        
+            if(true){
                 
                 if(channel_array.indexOf(line_id)== -1){
 
-                    psql("SELECT * FROM ACCOUNT WHERE angle_id=\'" + line_id +"\';")
+                    psql("SELECT * FROM CLIENT WHERE line_id=\'" + line_id +"\';")
                     .then( recpt =>{
                         if( recpt.length == 0)   
                         {
                             if(post.events[0].message.type == 'text'){
                                 var email = post.events[0].message.text;
-                                psql("SELECT * FROM ACCOUNT WHERE email=\'" + email +"\';").then(recpt=>{
+                                psql("SELECT * FROM CLIENT WHERE email=\'" + email +"\';").then(recpt=>{
                                     var emailRule = /^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]+$/;
                                     if( recpt.length == 0)
                                     {   
@@ -559,11 +286,11 @@ function loginParser(req ,rres){
 
                                             let text = {
                                                 "type":"text",
-                                                "text":"感謝您加入遊戲(嗨不能是電子郵件)，請輸入您註冊的電子郵件地址(如：xu.6u.30@gmail.com):"
+                                                "text":"感謝您加入BoxFlow，請輸入您註冊的電子郵件地址(如：xu.6u.30@gmail.com):"
                                             }
                                             var ad_youtube = {  
                                                 "type": "flex",
-                                                "altText": "大講堂有消息，請借台手機開啟",
+                                                "altText": "BoxFlow有消息，請借台手機開啟",
                                                 "contents":
                                                     {
                                                         "type": "bubble",
@@ -628,7 +355,7 @@ function loginParser(req ,rres){
 
                                             let text = {
                                                 "type":"text",
-                                                "text":"請點選上面的按鈕，進到瀏覽器註冊，之後注意andriod手機請點選open in other app(如下圖)，iOS則不用"
+                                                "text":"請點選上面的按鈕，進到瀏覽器註冊"
                                             }
                                             let img = {
                                                 "type": "image",
@@ -637,7 +364,7 @@ function loginParser(req ,rres){
                                             }
                                             let login_button ={
                                                 "type": "template",
-                                                "altText": "大講堂有消息，請借台手機開啟",
+                                                "altText": "BoxFlow有消息，請借台手機開啟",
                                                 "template": {
                                                     "type": "buttons",
                                                     "thumbnailImageUrl": "https://i.imgur.com/XQgkcW5.jpg",
@@ -648,13 +375,13 @@ function loginParser(req ,rres){
                                                     "defaultAction": {
                                                         "type": "uri",
                                                         "label": "註冊",
-                                                        "uri": "https://angleline-hall.herokuapp.com/formhtml"
+                                                        "uri": "https://boxflow.herokuapp.com/formhtml"
                                                     },
                                                     "actions": [
                                                         {
                                                           "type": "uri",
                                                           "label": "註冊",
-                                                          "uri": "https://angleline-hall.herokuapp.com/formhtml"
+                                                          "uri": "https://boxflow.herokuapp.com/formhtml"
                                                         }
                                                     ]
                                                 }
@@ -662,7 +389,7 @@ function loginParser(req ,rres){
                                             let relogin_button =
                                                 {
                                                     "type": "template",
-                                                    "altText": "大講堂有消息，請借台手機開啟",
+                                                    "altText": "BoxFlow有消息，請借台手機開啟",
                                                     "template": {
                                                         "type": "buttons",                            
                                                         "text": "如果註冊失敗，可按我重新註冊",                            
@@ -670,7 +397,7 @@ function loginParser(req ,rres){
                                                             {
                                                                 "type": "uri",
                                                                 "label": "點我重新註冊",
-                                                                "uri":"https://angleline-hall.herokuapp.com/formhtml"     
+                                                                "uri":"https://boxflow.herokuapp.com/formhtml"     
                                                             }
                                                         ]
                                                     }
@@ -702,7 +429,7 @@ function loginParser(req ,rres){
                             
                                 let text ={
                                     "type":"text",
-                                    "text":"您已經註冊了，註冊階段本站功能尚未啟用，敬請見諒"
+                                    "text":"暫未開放隨便聊天，敬請見諒"
                                 }
                                 replymessage([text]); 
                                 rres.end("OK")                     
@@ -713,14 +440,194 @@ function loginParser(req ,rres){
 
                         let text = {
                             "type":"text",
-                            "text":"感謝您加入遊戲(嗨不能是電子郵件)，請輸入您註冊的電子郵件地址(如：xu.6u.30@gmail.com):"
+                            "text":"感謝您加入BoxFlow，請輸入您註冊的電子郵件地址(如：xu.6u.30@gmail.com):"
                         }
                         replymessage([text])
                         delete channel_array[line_id]
-                    }else{
+                    }else if(post.events[0].message.text == '@增加機器'){
+                        channel_array_2[post.events[0].source.userId]="增加機器";
                         let text = {
                             "type":"text",
-                            "text":"您已經註冊了，註冊階段本站功能尚未啟用，敬請見諒(您是第"+channel_array.indexOf(line_id)+"位註冊者)"
+                            "text":"請輸入Box_id:"
+                        }
+                        replymessage([text]);
+                    }else if(post.events[0].message.text == '@新增菜單'){
+                        channel_array_2[post.events[0].source.userId]="新增菜單";
+                        let text = {
+                            "type":"text",
+                            "text":"替菜單取個名字:"
+                        }
+                        replymessage([text]);
+                    }else if(post.events[0].message.text == '@取消' || post.events[0].message.text == '@取消新增菜單'){
+                        channel_array_2[post.events[0].source.userId]="取消";
+                    }
+                    else if(post.events[0].source.userId in channel_array){
+
+                        let msg = post.events[0].message;                                    
+                        let type = msg.type;
+                        let msgid = msg.id;                                
+                        let receiver_id = channel_array[post.events[0].source.userId];
+                        let gate = false;
+        
+                        if(post.events[0].message.type == 'text'){
+        
+                            let box_id = post.events[0].message.text;                                      
+                            if(channel_array_2[post.events[0].source.userId]=="增加機器"){
+
+                                psql("SELECT * FROM CLIENT WHERE line_id=\'" + post.events[0].source.userId +"\';").then(recpt=>{
+
+                                    let reply_button =
+                                    {
+                                        "type": "template",
+                                        "altText": "BoxFlow有消息，請借台手機開啟",
+                                        "template": {
+                                            "type": "buttons",                            
+                                            "text": "請決定",                            
+                                            "actions": [
+                                                {
+                                                    "type": "postback",
+                                                    "label": "允許增加"+recpt[0].nickname_or_mark+":mail:"+recpt[0].email+":box:"+box_id,
+                                                    "data": "send=1"+"&boxid="+msgid+"&line_id="+post.events[0].source.userId
+                                                }                                            
+                                            ]
+                                        }
+                                    };
+                                
+                                    pushToSuv([reply_button]);
+
+                                });
+                                
+                            }else if(channel_array_2[post.events[0].source.userId]=="新增菜單"){
+
+                                psql("CREATE TABLE "+post.events[0].message.text+"(item char(50),price int);").then(recpt=>{
+
+                                    let text = {
+                                        "type":"text",
+                                        "text":"輸入箱子:"
+                                    }
+                                    replymessage([text]);
+                                
+                                    channel_array_2[post.events[0].source.userId]="輸入箱子";
+                                    channel_array_3[post.events[0].source.userId]=post.events[0].message.text;
+                                    psql("SELECT * FROM BOX WHERE line_id=\'"+post.events[0].source.userId+"\';").then(
+                                        recpt =>{
+                                            let respond =
+                                                {
+                                                    "type": "text", // ①
+                                                    "text": "Select your favorite food category or send me your location!",
+                                                    "quickReply": { // ②
+                                                      "items": [                                                       
+                                                      ]
+                                                    }
+                                                  }
+                                            for(box of recpt){
+                                                let box_option ={
+                                                    "type": "action", // ③
+                                                    "imageUrl": "https://example.com/sushi.png",
+                                                    "action": {
+                                                      "type": "message",
+                                                      "label": box.box_id,
+                                                      "text": box.box_id
+                                                    }
+                                                };                                                 
+                                                
+                                                respond.quickReply.items.push(box_option);
+                                            }
+                                        }
+                                    );
+                                    
+                                });
+                                
+                            }else if(channel_array_2[post.events[0].source.userId]=="輸入箱子"){
+
+                                psql("UPDATE BOX SET menu_name="+ post.events[0].message.text +" WHERE box_id=\'"+channel_array_3[post.events[0].source.userId]+"\';").then(recpt=>{
+
+                                    let text = {
+                                        "type":"text",
+                                        "text":"品項:"
+                                    }
+                                    replymessage([text]);                                    
+                                    channel_array_2[post.events[0].source.userId]="新增品項";
+
+                                });
+                                
+                            }
+                            else if(channel_array_2[post.events[0].source.userId]=="新增品項"){
+
+                                psql("INSERT INTO "+channel_array_3[post.events[0].source.userId]+" (item) VALUES (\'"
+                                +post.events[0].message.text +"'\');").then(recpt=>{
+
+                                    let text = {
+                                        "type":"text",
+                                        "text":"價位:"
+                                    }
+                                    replymessage([text]);                                   
+                                    channel_array_2[post.events[0].source.userId]="新增價位";
+                                    channel_array_3[post.events[0].source.userId]=post.events[0].message.text;
+
+                                });
+                                
+                            }
+                            else if(channel_array_2[post.events[0].source.userId]=="新增價位"){
+
+                               
+
+                                    let text = {
+                                        "type":"text",
+                                        "text":"品項:"
+                                    }
+                                    
+                                    psql("UPDATE "+channel_array_3[post.events[0].source.userId]+" SET price="+ int(post.events[0].message.text) +" WHERE item=\'"+channel_array_3[post.events[0].source.userId]+"\';").then(
+                                        aa=>{
+                                            replymessage([text]);                                            
+                                        }
+                                    )
+                                    channel_array_2[post.events[0].source.userId]="新增品項";
+
+                                                                
+                            }
+                            else if(channel_array_2[post.events[0].source.userId]=="增加機器"){
+
+                                psql("SELECT * FROM CLIENT WHERE line_id=\'" + post.events[0].source.userId +"\';").then(recpt=>{
+
+                                    let reply_button =
+                                    {
+                                        "type": "template",
+                                        "altText": "BoxFlow有消息，請借台手機開啟",
+                                        "template": {
+                                            "type": "buttons",                            
+                                            "text": "請決定",                            
+                                            "actions": [
+                                                {
+                                                    "type": "postback",
+                                                    "label": "允許增加"+recpt[0].nickname_or_mark+":mail:"+recpt[0].email+":box:"+box_id,
+                                                    "data": "send=1"+"&boxid="+msgid+"&line_id="+post.events[0].source.userId
+                                                }                                            
+                                            ]
+                                        }
+                                    };
+                                
+                                    pushToSuv([reply_button]);
+
+                                });
+                                
+                            }                     
+                            else{
+                                let text = {
+                                    "type":"text",
+                                    "text":"您已經註冊了，尚未開放隨便聊天，敬請見諒(您是第"+channel_array.indexOf(line_id)+"位註冊者)"
+                                }
+                                replymessage([text])
+                            }
+                                                
+                        }        
+                        
+        
+                    }
+                    else{
+                        let text = {
+                            "type":"text",
+                            "text":"您已經註冊了，尚未開放隨便聊天，敬請見諒(您是第"+channel_array.indexOf(line_id)+"位註冊者)"
                         }
                         replymessage([text])
                     }
@@ -795,72 +702,26 @@ function FormReceiver(req,rres){
         console.log('end')
         post = querystring.parse(post);    
         console.log(post);
-        psql("SELECT * FROM ACCOUNT WHERE email=\'"+ post.email +"\';").then(
+        psql("SELECT * FROM CLIENT WHERE email=\'"+ post.email +"\';").then(
             angles =>{
-                if(angles.length ==0 || angles[0].angle_id==''){
+                if(angles.length ==0 || angles[0].line_id==''){
                     rres.sendFile(__dirname+'/error_email.html')
                 }else{
-                    psql("UPDATE ACCOUNT SET (phone,angle_nickname,department,self_intro,groupindex,name"
-                    +")=(\'"+ post.phone +"\',\'"+post.nickname+"\',\'"+post.dept+"\',\'"+post['self-intro']+"\',\'"+post.group
-                    +"\',\'"+post.name+"\') WHERE email=\'" + post.email +"\';").then(
+                    psql("UPDATE CLIENT SET (phone,nickname_or_mark"
+                    +")=(\'"+ post.phone +"\',\'"+post.nickname_or_mark+"\') WHERE email=\'" + post.email +"\';").then(
                         aa =>{       
                             //main:
                             let msg =[];
-                            for(let url of graph_url){
-                                let graph = {
-
-                                    "type": "flex",
-                                    "altText": "大講堂有消息，請借台手機開啟",
-                                    "contents":
-                                        {
-                                            "type": "bubble",
-                                            "header": {
-                                            "type": "box",
-                                            "layout": "vertical",
-                                            "contents": [
-                                                {
-                                                "type": "text",
-                                                "text": "選擇圖片"
-                                                }
-                                            ]
-                                            },
-                                            "hero": {
-                                                "type": "image",
-                                                "url": url, //use 圖片位址
-                                            } ,
-                                            "footer": {
-                                            "type": "box",
-                                            "layout": "vertical",
-                                            "contents": [
-                                                {
-                                                "type": "spacer",
-                                                "size": "xl"
-                                                },
-                                                {
-                                                "type": "button",
-                                                "action": {
-                                                    "type": "postback",
-                                                    "label": "按我選圖片",
-                                                    "data": "url="+url
-                                                },
-                                                "style": "primary",
-                                                "color": "#ffbb00"
-                                                }
-                                            ]
-                                            }             
-                                        }
-                                };
-                                pushmessage([graph],angles[0].angle_id);
-                            }
+                            
                             let text ={
                                 "type":"text",
                                 "text":""
                             }
-                            text.text ="請選擇頭貼(選項如上，選錯了再選一次可以cover原先選擇)，或是自行上傳頭貼(下面按鈕)";
+                            text.text ="請上傳自拍照，先開Line外面的相機自拍";
                             
                             var upload_page = {  
                                 "type": "flex",
-                                "altText": "大講堂有消息，請借台手機開啟",
+                                "altText": "BoxFlow有消息，請借台手機開啟",
                                 "contents":
                                     {
                                         "type": "bubble",
@@ -917,7 +778,7 @@ function FormReceiver(req,rres){
                             };
                             msg.push(text);
                             msg.push(upload_page);                            
-                            setTimeout(()=>{pushmessage(msg,angles[0].angle_id);},3000)
+                            setTimeout(()=>{pushmessage(msg,angles[0].line_id);},1000);
                             rres.sendFile(__dirname+'/relogin.html');                                                                 
                         }
                     );
@@ -954,20 +815,20 @@ function imgReceiver(req,rres){
     req.on('end', function(){
         post = querystring.parse(post);    
         console.log(post);
-        psql("SELECT * FROM ACCOUNT WHERE email=\'"+post.email+"\';").then(
+        psql("SELECT * FROM CLIENT WHERE email=\'"+post.email+"\';").then(
             members =>{
                 let gate = false;
                 if(members[0].head_url.replace(/\s+/g, "")=='https://i.imgur.com/PAoZtFc.jpg'){
                     gate = true;
                 }
                 
-                psql("UPDATE ACCOUNT SET head_url=\'"+ post.url +"\' WHERE email=\'" + post.email +"\';").then(
+                psql("UPDATE CLIENT SET face_url=\'"+ post.url +"\' WHERE email=\'" + post.email +"\';").then(
                     aa =>{
-                       psql("SELECT * FROM ACCOUNT WHERE email=\'"+post.email+"\';").then(
+                       psql("SELECT * FROM CLIENT WHERE email=\'"+post.email+"\';").then(
                            res =>{
                                 let text2 = {
                                     "type":"text",
-                                    "text":"已上傳圖片為頭貼"
+                                    "text":"已上傳圖片為臉照"
                                 }                       
                                 
 
@@ -979,7 +840,7 @@ function imgReceiver(req,rres){
                                       "contents": [
                                         {
                                           "type": "text",
-                                          "text": "你的小天使"
+                                          "text": "你的臉照"
                                         }
                                       ]
                                     },
@@ -994,18 +855,13 @@ function imgReceiver(req,rres){
                                         
                                             {//暱稱
                                                 "type": "text",
-                                                "text": "暱稱： "+res[0].angle_nickname.replace(/\s+/g, ""),
+                                                "text": "暱稱： "+res[0].nickname_or_mark.replace(/\s+/g, ""),
                                               },
                                       ]
                                     }
                                     
-                                };
-                                
-                                let self_intro =                
-                                {//自我介紹
-                                    "type": "text",
-                                    "text": "自我介紹： "+ res[0].self_intro,
-                                };
+                                };                                
+                               
         
                                 let msg2 ={  
                                     "type": "flex",
@@ -1013,7 +869,7 @@ function imgReceiver(req,rres){
                                     "contents":bubble 
                                 };
 
-                                let msg =[text2,msg2,self_intro];
+                                let msg =[text2,msg2];
 
                                 if(gate){
                                     let text ={
@@ -1021,276 +877,9 @@ function imgReceiver(req,rres){
                                         "text":""
                                     }
                                     text.text ="成功註冊!";
-                                    msg.push(text);
-
-                                    var ad_msg_angle;
-                                    var ad_msg_info;
-                                    var ad_msg_master;
-
-                                    if( members[0].department.replace(/\s+/g, "") == "psy"){
-
-                                        ad_msg_angle = {  
-                                            "type": "flex",
-                                            "altText": "大講堂有消息，請借台手機開啟",
-                                            "contents":
-                                                {
-                                                    "type": "bubble",
-                                                    "header": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "text",
-                                                        "text": "按按鈕加小天使為好友"
-                                                        }
-                                                    ]
-                                                    },
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": "https://i.imgur.com/4Ut09xB.jpg", //use 圖片位址
-                                                    } ,
-                                                    "footer": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "spacer",
-                                                        "size": "xl"
-                                                        },
-                                                        {
-                                                        "type": "button",
-                                                        "action": {
-                                                            "type": "uri",
-                                                            "label": "按我加好友",
-                                                            "uri": "https://line.me/R/ti/p/%40hnc0868c"
-                                                        },
-                                                        "style": "primary",
-                                                        "color": "#ff3333"
-                                                        }
-                                                    ]
-                                                    }             
-                                                }
-                                        };
-                                        ad_msg_master = {  
-                                            "type": "flex",
-                                            "altText": "大講堂有消息，請借台手機開啟",
-                                            "contents":
-                                                {
-                                                    "type": "bubble",
-                                                    "header": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "text",
-                                                        "text": "按按鈕加小主人為好友"
-                                                        }
-                                                    ]
-                                                    },
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": "https://i.imgur.com/vQB9JKi.jpg", //use 圖片位址
-                                                    } ,
-                                                    "footer": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "spacer",
-                                                        "size": "xl"
-                                                        },
-                                                        {
-                                                        "type": "button",
-                                                        "action": {
-                                                            "type": "uri",
-                                                            "label": "按我加好友",
-                                                            "uri": "https://line.me/R/ti/p/%40rpu9491f"
-                                                        },
-                                                        "style": "primary",
-                                                        "color": "#ff3333"
-                                                        }
-                                                    ]
-                                                    }             
-                                                }
-                                        };
-                                        ad_msg_info = {  
-                                            "type": "flex",
-                                            "altText": "大講堂有消息，請借台手機開啟",
-                                            "contents":
-                                                {
-                                                    "type": "bubble",
-                                                    "header": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "text",
-                                                        "text": "按按鈕加詢問站為好友"
-                                                        }
-                                                    ]
-                                                    },
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": "https://i.imgur.com/xffIZIN.jpg", //use 圖片位址
-                                                    } ,
-                                                    "footer": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "spacer",
-                                                        "size": "xl"
-                                                        },
-                                                        {
-                                                        "type": "button",
-                                                        "action": {
-                                                            "type": "uri",
-                                                            "label": "按我加好友",
-                                                            "uri": "https://line.me/R/ti/p/%40hbl3061e"
-                                                        },
-                                                        "style": "primary",
-                                                        "color": "#ff3333"
-                                                        }
-                                                    ]
-                                                    }             
-                                                }
-                                        };
-
-                                    }else{
-
-                                        ad_msg_angle = {  
-                                            "type": "flex",
-                                            "altText": "大講堂有消息，請借台手機開啟",
-                                            "contents":
-                                                {
-                                                    "type": "bubble",
-                                                    "header": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "text",
-                                                        "text": "按按鈕加小天使為好友"
-                                                        }
-                                                    ]
-                                                    },
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": "https://i.imgur.com/4Ut09xB.jpg", //use 圖片位址
-                                                    } ,
-                                                    "footer": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "spacer",
-                                                        "size": "xl"
-                                                        },
-                                                        {
-                                                        "type": "button",
-                                                        "action": {
-                                                            "type": "uri",
-                                                            "label": "按我加好友",
-                                                            "uri": "https://line.me/R/ti/p/%40zpf3150n"
-                                                        },
-                                                        "style": "primary",
-                                                        "color": "#ff3333"
-                                                        }
-                                                    ]
-                                                    }             
-                                                }
-                                        };
-                                        ad_msg_master = {  
-                                            "type": "flex",
-                                            "altText": "大講堂有消息，請借台手機開啟",
-                                            "contents":
-                                                {
-                                                    "type": "bubble",
-                                                    "header": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "text",
-                                                        "text": "按按鈕加小主人為好友"
-                                                        }
-                                                    ]
-                                                    },
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": "https://i.imgur.com/vQB9JKi.jpg", //use 圖片位址
-                                                    } ,
-                                                    "footer": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "spacer",
-                                                        "size": "xl"
-                                                        },
-                                                        {
-                                                        "type": "button",
-                                                        "action": {
-                                                            "type": "uri",
-                                                            "label": "按我加好友",
-                                                            "uri": "https://line.me/R/ti/p/%40dwg5277m"
-                                                        },
-                                                        "style": "primary",
-                                                        "color": "#ff3333"
-                                                        }
-                                                    ]
-                                                    }             
-                                                }
-                                        };
-                                        ad_msg_info = {  
-                                            "type": "flex",
-                                            "altText": "大講堂有消息，請借台手機開啟",
-                                            "contents":
-                                                {
-                                                    "type": "bubble",
-                                                    "header": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "text",
-                                                        "text": "按按鈕加詢問站為好友"
-                                                        }
-                                                    ]
-                                                    },
-                                                    "hero": {
-                                                        "type": "image",
-                                                        "url": "https://i.imgur.com/xffIZIN.jpg", //use 圖片位址
-                                                    } ,
-                                                    "footer": {
-                                                    "type": "box",
-                                                    "layout": "vertical",
-                                                    "contents": [
-                                                        {
-                                                        "type": "spacer",
-                                                        "size": "xl"
-                                                        },
-                                                        {
-                                                        "type": "button",
-                                                        "action": {
-                                                            "type": "uri",
-                                                            "label": "按我加好友",
-                                                            "uri": "https://line.me/R/ti/p/%40vdg2092y"
-                                                        },
-                                                        "style": "primary",
-                                                        "color": "#ff3333"
-                                                        }
-                                                    ]
-                                                    }             
-                                                }
-                                        };
-                                    }   
-                                    pushmessage([ad_msg_angle,ad_msg_master,ad_msg_info],res[0].angle_id);
+                                    msg.push(text);                                    
                                 }                              
-
-                               setTimeout( () => {
-                                pushmessage(msg,res[0].angle_id);
-                               }, 3000);
+                               pushmessage(msg,res[0].line_id);
                                rres.end("OK") 
                            }
                        ) 
@@ -1304,8 +893,9 @@ function imgReceiver(req,rres){
     
 }
 
+
 function checkReceiver(req,rres){
-    // 通过req的data事件监听函数，每当接受到请求体的数据，就累加到post变量中
+    // check balance
     let post='';
     req.on('data', function(chunk){   
         post += chunk;
@@ -1323,13 +913,13 @@ function checkReceiver(req,rres){
     req.on('end', function(){
         post = querystring.parse(post);    
         console.log(post);
-        psql("SELECT * FROM ACCOUNT WHERE email=\'"+post.email+"\';").then(
+        psql("SELECT * FROM CLIENT WHERE email=\'"+post.email+"\';").then(
             members =>{
                 
-                if(members[0].self_intro.replace(/\s+/g, "")=='none'){
-                    rres.end("no")
+                if(members[0].balance==0){
+                    rres.end("0")
                 }else{
-                    rres.end("yes")
+                    rres.end(members[0].balance)
                 }              
                
             }

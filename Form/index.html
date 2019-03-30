@@ -38,11 +38,10 @@ function hideURLbar(){ window.scrollTo(0,1); } </script>
 			<h1 style="color:darkblue;background-color: azure;padding-left:12%; padding-right: 12%;right: 1%;padding: 0.6em 0.3em 0.5em;border: 3.5em 0 3em;width:100%;position: relative;border-top: 0;font-size: 5vw;"> 2018 台大物理\_/國北心諮 聯合宿營</h1>	
 		</div>
 		 <div class="bg-agile">
-			<h2 style="font-size: 4vw;">小天使與小主人資料表單 </h2>
+			<h2 style="font-size: 4vw;">Box Flow 註冊 </h2>
 
 			<div class="login-form">
-				<script>
-					alert("Android(iOS無須理會此訊息)請按右上角的三個點點:OPEN IN OTHER APP，在另外一個瀏覽器填表格，第二次看到此訊息可以不用理會");
+				<script>					
 					function cook(){
 						document.cookie = "email="+document.getElementById("key").value+";max-age=31536000;";
 						//alert("確認 email : "+String(document.getElementById("key").value)+"\n底下有任何需要打勾的，\"請勿\"勾選");
@@ -52,31 +51,11 @@ function hideURLbar(){ window.scrollTo(0,1); } </script>
 				</script>	
 				<form action="/form" id="postform" method="post" onsubmit="cook()">
 					<input type="text" id="key" name="email" placeholder="郵件信箱" maxlength="50" required="" />					
-					<div class="left-w3-agile">
-						<select class="form-control" name="dept">
-							<option value="phys">我是物理系</option>
-							<option value="psy">我是心諮系</option>							
-						</select>						
-					</div>
+					
 					<div class="right-agileits">
-						<input type="text"  name="name" placeholder="姓名" required="" maxlength="13"/>						
-					</div>
-					<div class="left-w3-agile">						
-						<select class="form-control" name="group">
-							<option value="1">我是第1小隊</option>
-							<option value="2">我是第2小隊</option>
-							<option value="3">我是第3小隊</option>
-							<option value="4">我是第4小隊</option>
-							<option value="5">我是第5小隊</option>
-							<option value="6">我是第6小隊</option>
-							<option value="7">我是第7小隊</option>
-							<option value="8">我是第8小隊</option>							
-						</select>						
-					</div>
-					<input type="text"  name="nickname" placeholder="暱稱*" required="" maxlength="50"/>					
-					<textarea name="self-intro" rows="4" cols="50" required="" / minlength="15" maxlength="150" placeholder="自我介紹(15-150字)*"></textarea>
-					<input type="text"  name="phone" placeholder="連絡電話" required="" maxlength="10"/>
-					<div style="color:wheat">只有打*的項目和下個頁面上傳的頭貼，會於遊戲中顯示</div>					
+						<input type="text"  name="nickname_or_mark" placeholder="暱稱或商家名" required="" maxlength="50"/>						
+					</div>					
+					<input type="text"  name="phone" placeholder="連絡電話" required="" maxlength="10"/>										
 					<input type="submit" value="提交">
 				</form>	
 				
