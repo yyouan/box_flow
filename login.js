@@ -879,7 +879,7 @@ function imgReceiver(req,rres){
                                     text.text ="成功註冊!";
                                     msg.push(text);                                    
                                 }                              
-                               pushmessage(msg,res[0].line_id);
+                               pushmessage(msg,res[0].line_id.replace(/\s+/g, ""));
                                rres.end("OK") 
                            }
                        ) 
