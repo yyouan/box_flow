@@ -478,7 +478,7 @@ function loginParser(req ,rres){
                         }                             
                         
                         withdraw_array.push(post.events[0].source.userId);
-                        replymessage([text2]);
+                        replymessage([text_2]);
                     }
                     else if(post.events[0].message.text == '@儲值'){
                         
