@@ -991,9 +991,10 @@ app.post('/deposit', (req,rres)=>{
     });
     
     req.on('end', function(){
-        console.log(message)
-        connection.send("我收到了: " + message.utf8Data);
-        msg = JSON.parse(message.utf8Data);
+        
+        msg = querystring.parse(post);    
+        console.log(msg);
+        
         if("deposit" in msg){
                 let line_id = pay_array[0];
                 pay_array.remove(pay_array[0]);
