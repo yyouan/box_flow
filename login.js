@@ -488,7 +488,7 @@ function loginParser(req ,rres){
                                             "actions": [
                                                 {
                                                     "type": "postback",
-                                                    "label": "是否允許",
+                                                    "label": "允許",
                                                     "data": "send=1"+"&boxid="+msgid+"&line_id="+post.events[0].source.userId
                                                 }                                         
                                             ]
@@ -497,7 +497,7 @@ function loginParser(req ,rres){
 
                                     let text ={
                                         "type":"text",
-                                        "text":"允許增加"+recpt[0].nickname_or_mark+":mail:"+recpt[0].email+":box:"+box_id
+                                        "text":"允許增加"+recpt[0].nickname_or_mark.replace(/\s+/g, "")+":mail:"+recpt[0].email+":box:"+box_id
                                     }   
                                 
                                     pushToSuv([reply_button,text]);
