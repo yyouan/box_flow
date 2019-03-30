@@ -53,14 +53,14 @@ function pushToSuv(recpt){
           recpt.forEach(element => {
             console.log("pushmessage:"+element);
           });
-          for(let token of InfoTokens){
+          
 
             var options = {
                 url: "https://api.line.me/v2/bot/message/push",
                 method: 'POST',
                 headers: {
                   'Content-Type':  'application/json', 
-                  'Authorization':'Bearer ' + token
+                  'Authorization':'Bearer ' + "+act2uqFxj9eXRsREj62KlPeKGLHhZathXvdYQX3TjIPGiv0KtZubUngPx4Bgr97DvFe7mfC/1Xg1nZGSXCJCcD81A2ffu+Scqzgx1G2XatW12luzYLz7qaaI9LvSCisP0UmGC2qhuhFEDtLK7SYdQdB04t89/1O/w1cDnyilFU="
                 },
                 json: {
                     "to": group.group_id.replace(/\s+/g, ""),
@@ -74,7 +74,7 @@ function pushToSuv(recpt){
                 console.log(body);
             });
 
-          }
+          
           
   
         }      
