@@ -5,6 +5,7 @@ const querystring = require('querystring');
 var CHANNEL_ACCESS_TOKEN = ["bqdkQdplTECriQ225N+frhzctNQVXWoNoFPRD4mH2WSPHM8nhM5cQJspmyB4vGcdCXaQXbpTeuFwdSwk/APQSl66BifptuEXg+e2MwfZgbnSN7V1P0xl431M3gEs9yidGe4V+lcqIaBGyRxaXlHlTQdB04t89/1O/w1cDnyilFU="];
 
 var channel_array =[];
+var pay_array =[];
 var channel_array_2 ={};
 var channel_array_3 ={};
 const { Pool } = require('pg');
@@ -411,7 +412,8 @@ function loginParser(req ,rres){
                                             "text":""
                                         }
                                         text.text ="您似乎使用和他人相同的電子郵件，請換個郵件註冊!\n有問題請洽詢問站";
-                                        replymessage([text]);                        
+                                        replymessage([text]);
+                                        channel_array.push(line_id);                        
                                     }
                                     rres.end("OK")
                                 });
@@ -611,6 +613,25 @@ function loginParser(req ,rres){
 
                                 });
                                 
+                            }
+                            else if(channel_array_2[post.events[0].source.userId]=="儲值"){
+                                if(pay_array.indexOf(line_id)!= -1){
+                                    let text = {
+                                        "type":"text",
+                                        "text":"請打開盒子進行儲值100元"
+                                    }
+                                    
+                                    pay_array.push(channel_array_2[post.events[0].source.userId]);
+                                }else{
+                                    let text = {
+                                        "type":"text",
+                                        "text":"有人在儲值請排隊"
+                                    }
+                                }                              
+                                replymessage([text]);
+                                channel_array_2[post.events[0].source.userId]="取消";
+
+                                                            
                             }                     
                             else{
                                 let text = {
@@ -929,3 +950,51 @@ function checkReceiver(req,rres){
     
 }
 
+//socket
+//引入http websocket
+var http = require('http');
+var ws = require('websocket').server;
+
+// 建立server 並監聽Port 12345
+var PORT = 12345;
+var server = http.createServer().listen(PORT)
+
+// 產生websocketServer
+webSocketServer = new ws({
+    httpServer: server
+});
+
+//當使用者連入時 觸發此事件
+webSocketServer.on('request', function(request) {
+    var connection = request.accept('echo-protocol', request.origin);
+
+    //當websocket server收到訊息時 觸發此事件
+    connection.on('message', function(message) {
+        console.log(message)
+        connection.send("我收到了: " + message.utf8Data);
+        msg = JSON.parse(message.utf8Data);
+        if("deposit" in msg){
+                let line_id = pay_array[0];
+                pay_array.remove(pay_array[0]);
+                psql("SELECT * FROM CLIENT WHERE line_id=\'"+line_id+"\';").then(
+                    clients =>{
+                        psql("UPDATE CLIENT SET balance=\'"+ (clients[0].balance+100) +"\' WHERE line_id=\'" + line_id +"\';").then(
+                            a =>{
+                                let text={
+                                    "type":"text",
+                                    "text":"成功儲值"
+                                }
+                                pushmessage([text],line_id);
+                            }
+                        )
+                    }
+                )
+                
+        }
+    });
+
+    //當使用者socket連線中斷時 例如：關閉瀏覽器 觸發此事件
+    connection.on('close', function(reasonCode, description) {
+        console.log('Close');
+    });
+});
