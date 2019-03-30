@@ -1065,14 +1065,14 @@ app.post('/withdraw', (req,rres)=>{
             withdraw_array = [];
             psql("SELECT * FROM CLIENT WHERE line_id=\'"+line_id+"\';").then(
                 clients =>{
-                    psql("SELECT * FROM "+msg.box_id+"_cash\';").then(
+                    psql("SELECT * FROM "+msg.box_id+"_cash;").then(
                         cashes =>{
                             if(clients[0].balance >= 100*cashes.length){
                                 for(cash of cashes){
                                     psql("UPDATE CASH SET line_id_out=\'"+ line_id +"\' WHERE id=\'" + cash.cash_id +"\' and line_id_out=\'\';")
                                 }
                                 psql("UPDATE CLIENT SET balance=\'"+ ( clients[0].balance - 100*cashes.length )+"\' WHERE line_id=\'" + line_id +"\';")
-                                psql("DELETE FROM "+msg.box_id+";")
+                                psql("DELETE FROM "+msg.box_id+"_cash;")
                                 rres.end("OK");
                             }else{
                                 rres.end("NOT OK")
