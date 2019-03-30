@@ -995,7 +995,7 @@ app.post('/deposit', (req,rres)=>{
         msg = querystring.parse(post);
           
         console.log(msg);
-        
+        console.log("deposit" in msg);
         if("deposit" in msg && pay_array.length == 1){
                 console.log("deposit");
                 let line_id = pay_array[0];
