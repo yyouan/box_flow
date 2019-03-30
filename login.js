@@ -476,7 +476,7 @@ function loginParser(req ,rres){
                         }
                         
                         if(pay_array.length == 0){
-                            let text = {
+                            var text_2 = {
                                 "type":"text",
                                 "text":"請打開盒子進行儲值100元"
                             }
