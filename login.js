@@ -992,10 +992,12 @@ app.post('/deposit', (req,rres)=>{
     
     req.on('end', function(){
         
-        msg = querystring.parse(post);    
+        msg = querystring.parse(post);
+        msg = JSON.parse(msg);    
         console.log(msg);
         
-        if("deposit" in msg){
+        if("deposit" in msg && pay_array.length == 1){
+                console.log("deposit");
                 let line_id = pay_array[0];
                 pay_array.remove(pay_array[0]);
                 psql("SELECT * FROM CLIENT WHERE line_id=\'"+line_id+"\';").then(
