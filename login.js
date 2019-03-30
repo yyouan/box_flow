@@ -463,12 +463,12 @@ function loginParser(req ,rres){
                     }else if(post.events[0].message.text == '@取消' || post.events[0].message.text == '@取消新增菜單'){
                         channel_array_2[post.events[0].source.userId]="取消";
                     }
-                    else if(post.events[0].source.userId in channel_array){
+                    else if(post.events[0].source.userId in channel_array_2){
 
                         let msg = post.events[0].message;                                    
                         let type = msg.type;
                         let msgid = msg.id;                                
-                        let receiver_id = channel_array[post.events[0].source.userId];
+                        let receiver_id = channel_array_2[post.events[0].source.userId];
                         let gate = false;
         
                         if(post.events[0].message.type == 'text'){
