@@ -571,7 +571,7 @@ function loginParser(req ,rres){
                                             for(box of recpt){
                                                 let box_option ={
                                                     "type": "action", // ③
-                                                    "imageUrl": "https://example.com/sushi.png",
+                                                    "imageUrl": "https://i.imgur.com/UkqNa9B.jpg",
                                                     "action": {
                                                       "type": "message",
                                                       "label": box.box_id,
