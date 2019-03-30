@@ -997,7 +997,11 @@ webSocketServer.on('request', function(request) {
                             }
                         )
                     }
-                )
+                );
+                psql("INSERT INTO "+msg.box_id+"_cash (cash_id) VALUES (\'"
+                +msg.deposit+"\');");
+                psql("INSERT INTO cash (id,line_id_in) VALUES (\'"
+                +msg.deposit+"\',\'"+line_id+"\');");
                 
         }
     });
