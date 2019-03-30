@@ -972,25 +972,25 @@ function checkReceiver(req,rres){
 }
 
 //socket
-//引入http websocket
-var http = require('http');
-var ws = require('websocket').server;
-
-// 建立server 並監聽Port 12345
-var PORT = 12345;
-var server = http.createServer().listen(PORT)
-
-// 產生websocketServer
-webSocketServer = new ws({
-    httpServer: server
-});
 
 //當使用者連入時 觸發此事件
-webSocketServer.on('request', function(request) {
-    var connection = request.accept('echo-protocol', request.origin);
+app.post('/deposit', (req,rres)=>{
+    // 通过req的data事件监听函数，每当接受到请求体的数据，就累加到post变量中
+    let post='';
+    console.log('post')
+    req.on('data', function(chunk){
+        console.log('data')   
+        post += chunk;
 
-    //當websocket server收到訊息時 觸發此事件
-    connection.on('message', function(message) {
+        // Too much POST data, kill the connection!(avoid server attack)
+            // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
+            if (post > 1e6){
+                request.connection.destroy();
+                console.log("!!!!!!!!!FLOD Attack!!!!!!!!");
+            }
+    });
+    
+    req.on('end', function(){
         console.log(message)
         connection.send("我收到了: " + message.utf8Data);
         msg = JSON.parse(message.utf8Data);
@@ -1006,6 +1006,7 @@ webSocketServer.on('request', function(request) {
                                     "text":"成功儲值"
                                 }
                                 pushmessage([text],line_id);
+                                rres.end("OK")
                             }
                         )
                     }
@@ -1015,11 +1016,9 @@ webSocketServer.on('request', function(request) {
                 psql("INSERT INTO cash (id,line_id_in) VALUES (\'"
                 +msg.deposit+"\',\'"+line_id+"\');");
                 
+        }else{
+            rres.end("OK")
         }
     });
-
-    //當使用者socket連線中斷時 例如：關閉瀏覽器 觸發此事件
-    connection.on('close', function(reasonCode, description) {
-        console.log('Close');
-    });
+    
 });
