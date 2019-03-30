@@ -1073,6 +1073,11 @@ app.post('/withdraw', (req,rres)=>{
                                 }
                                 psql("UPDATE CLIENT SET balance=\'"+ ( clients[0].balance - 100*cashes.length )+"\' WHERE line_id=\'" + line_id +"\';")
                                 psql("DELETE FROM "+msg.box_id+"_cash;")
+                                let text ={
+                                    "type":"text",
+                                    "text":"成功領錢"+(100*cashes.length)
+                                }
+                                pushmessage([text],line_id);
                                 rres.end("OK");
                             }else{
                                 rres.end("NOT OK")
