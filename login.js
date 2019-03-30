@@ -581,7 +581,7 @@ function loginParser(req ,rres){
                                                 
                                                 respond.quickReply.items.push(box_option);
                                             }
-                                            pushmessage([text,respond])
+                                            replymessage([text,respond])
                                         }
                                     );
                                     
