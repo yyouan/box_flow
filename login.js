@@ -553,7 +553,7 @@ function loginParser(req ,rres){
                                         "type":"text",
                                         "text":"輸入箱子:"
                                     }
-                                    replymessage([text]);
+                                    
                                 
                                     channel_array_2[post.events[0].source.userId]="輸入箱子";
                                     channel_array_3[post.events[0].source.userId]=post.events[0].message.text;
@@ -581,7 +581,7 @@ function loginParser(req ,rres){
                                                 
                                                 respond.quickReply.items.push(box_option);
                                             }
-                                            pushmessage([respond],post.events[0].source.userId)
+                                            pushmessage([text,respond])
                                         }
                                     );
                                     
