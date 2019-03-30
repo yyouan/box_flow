@@ -481,7 +481,7 @@ function loginParser(req ,rres){
                                 "text":"請打開盒子進行儲值100元"
                             }
                             
-                            pay_array.push(channel_array_2[post.events[0].source.userId]);
+                            pay_array.push(post.events[0].source.userId);
                         }else{
                             var text_2 = {
                                 "type":"text",
