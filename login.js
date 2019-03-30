@@ -993,7 +993,7 @@ app.post('/deposit', (req,rres)=>{
     req.on('end', function(){
         
         msg = querystring.parse(post);
-        msg = JSON.parse(msg);    
+          
         console.log(msg);
         
         if("deposit" in msg && pay_array.length == 1){
