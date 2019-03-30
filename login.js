@@ -460,7 +460,38 @@ function loginParser(req ,rres){
                             "text":"替菜單取個名字:"
                         }
                         replymessage([text]);
-                    }else if(post.events[0].message.text == '@取消' || post.events[0].message.text == '@取消新增菜單'){
+                    }else if(post.events[0].message.text == '@支付'){
+                        channel_array_2[post.events[0].source.userId]="支付";
+                        let text = {
+                            "type":"text",
+                            "text":"輸入金額:"
+                        }
+                        replymessage([text]);
+                    }
+                    else if(post.events[0].message.text == '@儲值'){
+                        
+                        let text = {
+                            "type":"text",
+                            "text":"開始儲值"
+                        }
+                        
+                        if(pay_array.indexOf(line_id)!= -1){
+                            let text = {
+                                "type":"text",
+                                "text":"請打開盒子進行儲值100元"
+                            }
+                            
+                            pay_array.push(channel_array_2[post.events[0].source.userId]);
+                        }else{
+                            var text_2 = {
+                                "type":"text",
+                                "text":"有人在儲值請排隊"
+                            }
+                        }                              
+                        replymessage([text,text_2]);
+                        
+                    }
+                    else if(post.events[0].message.text == '@取消' || post.events[0].message.text == '@取消新增菜單'){
                         channel_array_2[post.events[0].source.userId]="取消";
                     }
                     else if(post.events[0].source.userId in channel_array_2){
@@ -622,25 +653,6 @@ function loginParser(req ,rres){
 
                                 });
                                 
-                            }
-                            else if(channel_array_2[post.events[0].source.userId]=="儲值"){
-                                if(pay_array.indexOf(line_id)!= -1){
-                                    let text = {
-                                        "type":"text",
-                                        "text":"請打開盒子進行儲值100元"
-                                    }
-                                    
-                                    pay_array.push(channel_array_2[post.events[0].source.userId]);
-                                }else{
-                                    let text = {
-                                        "type":"text",
-                                        "text":"有人在儲值請排隊"
-                                    }
-                                }                              
-                                replymessage([text]);
-                                channel_array_2[post.events[0].source.userId]="取消";
-
-                                                            
                             }                     
                             else{
                                 let text = {
