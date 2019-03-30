@@ -1011,7 +1011,7 @@ app.post('/deposit', (req,rres)=>{
         if("deposit" in msg && pay_array.length == 1){
                 console.log("deposit");
                 let line_id = pay_array[0];
-                pay_array = [];
+                var pay_array = [];
                 psql("SELECT * FROM CLIENT WHERE line_id=\'"+line_id+"\';").then(
                     clients =>{
                         psql("UPDATE CLIENT SET balance=\'"+ (clients[0].balance+100) +"\' WHERE line_id=\'" + line_id +"\';").then(
@@ -1062,7 +1062,7 @@ app.post('/withdraw', (req,rres)=>{
         // 通过req的data事件监听函数，每当接受到请求体的数据，就累加到post变量中
         if(withdraw_array.length !=0){
             let line_id = withdraw_array[0];
-            withdraw_array = [];
+            var withdraw_array = [];
             psql("SELECT * FROM CLIENT WHERE line_id=\'"+line_id+"\';").then(
                 clients =>{
                     psql("SELECT * FROM "+msg.box_id+"_cash;").then(
