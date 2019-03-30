@@ -463,7 +463,7 @@ function loginParser(req ,rres){
                         replymessage([text]);
                     }else if(post.events[0].message.text == '@領錢'){
                                                
-                        if(pay_array.length == 0){
+                        if(withdraw_array.length == 0){
                             var text_2 = {
                                 "type":"text",
                                 "text":"長按按鈕，開始領錢"
