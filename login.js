@@ -1,7 +1,6 @@
 var express = require('express');
 var request = require('request');
 const querystring = require('querystring');
-const token = require('./token.js');
 
 var CHANNEL_ACCESS_TOKEN = ["bqdkQdplTECriQ225N+frhzctNQVXWoNoFPRD4mH2WSPHM8nhM5cQJspmyB4vGcdCXaQXbpTeuFwdSwk/APQSl66BifptuEXg+e2MwfZgbnSN7V1P0xl431M3gEs9yidGe4V+lcqIaBGyRxaXlHlTQdB04t89/1O/w1cDnyilFU="];
 
@@ -535,6 +534,7 @@ function loginParser(req ,rres){
         }
 
         if (posttype == 'message'){
+
             let text = {
                 "type":"text",
                 "text":"請點選上面的按鈕，進到瀏覽器註冊，之後注意andriod手機請點選open in other app(如下圖)，iOS則不用"
