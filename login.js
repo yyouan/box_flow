@@ -469,15 +469,13 @@ function loginParser(req ,rres){
                                 "text":"長按按鈕，開始領錢"
                             }
                             
-                            pay_array.push(post.events[0].source.userId);
+                            withdraw_array.push(post.events[0].source.userId);
                         }else{
                             var text_2 = {
                                 "type":"text",
                                 "text":"有人在領錢請排隊"
                             }
-                        }                             
-                        
-                        withdraw_array.push(post.events[0].source.userId);
+                        }
                         replymessage([text_2]);
                     }
                     else if(post.events[0].message.text == '@儲值'){
@@ -1011,7 +1009,7 @@ app.post('/deposit', (req,rres)=>{
         if("deposit" in msg && pay_array.length == 1){
                 console.log("deposit");
                 let line_id = pay_array[0];
-                var pay_array = [];
+                pay_array = [];
                 psql("SELECT * FROM CLIENT WHERE line_id=\'"+line_id+"\';").then(
                     clients =>{
                         psql("UPDATE CLIENT SET balance=\'"+ (clients[0].balance+100) +"\' WHERE line_id=\'" + line_id +"\';").then(
@@ -1062,7 +1060,7 @@ app.post('/withdraw', (req,rres)=>{
         // 通过req的data事件监听函数，每当接受到请求体的数据，就累加到post变量中
         if(withdraw_array.length !=0){
             let line_id = withdraw_array[0];
-            var withdraw_array = [];
+            withdraw_array = [];
             psql("SELECT * FROM CLIENT WHERE line_id=\'"+line_id+"\';").then(
                 clients =>{
                     psql("SELECT * FROM "+msg.box_id+"_cash;").then(
