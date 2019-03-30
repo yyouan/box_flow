@@ -992,7 +992,7 @@ app.post('/deposit', (req,rres)=>{
     
     req.on('end', function(){
         
-        msg = querystring.parse(post);
+        msg = JSON.parse(post);
           
         console.log(msg);
         console.log("deposit" in msg);
