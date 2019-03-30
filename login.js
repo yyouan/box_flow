@@ -557,7 +557,7 @@ function loginParser(req ,rres){
                                 
                                     channel_array_2[post.events[0].source.userId]="輸入箱子";
                                     channel_array_3[post.events[0].source.userId]=post.events[0].message.text;
-                                    psql("SELECT * FROM BOX WHERE line_id=\'"+post.events[0].source.userId+"\';").then(
+                                    psql("SELECT * FROM BOX WHERE connect_line_id=\'"+post.events[0].source.userId+"\';").then(
                                         recpt =>{
                                             let respond =
                                                 {
