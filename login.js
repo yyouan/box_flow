@@ -604,7 +604,7 @@ function loginParser(req ,rres){
                             else if(channel_array_2[post.events[0].source.userId]=="新增品項"){
 
                                 psql("INSERT INTO "+channel_array_3[post.events[0].source.userId]+" (item) VALUES (\'"
-                                +post.events[0].message.text +"'\');").then(recpt=>{
+                                +post.events[0].message.text +"\');").then(recpt=>{
 
                                     let text = {
                                         "type":"text",
