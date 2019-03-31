@@ -581,6 +581,30 @@ function loginParser(req ,rres){
                         }
                         replymessage([text_2]);
                     }
+                    else if(post.events[0].message.text == '@借領'){
+                                               
+                        psql("SELECT * FROM CLIENT WHERE line_id=\'"+line_id+"\';").then(
+                            clients =>{
+                                psql("SELECT * FROM "+msg.box_id+"_cash;").then(
+                                    cashes =>{
+                                        if(clients[0].balance < 100*cashes.length){
+                                            for(cash of cashes){
+                                                psql("UPDATE CASH SET line_id_out=\'"+ line_id +"\' WHERE id=\'" + cash.cash_id +"\' and line_id_out=\'\';")
+                                            }
+                                            psql("UPDATE CLIENT SET balance=\'"+ ( clients[0].balance - 100*cashes.length )+"\' WHERE line_id=\'" + line_id +"\';")
+                                            psql("DELETE FROM "+msg.box_id+"_cash;")
+                                            let text ={
+                                                "type":"text",
+                                                "text":"成功領錢"+(100*cashes.length)
+                                            }
+                                            pushmessage([text],line_id);
+                                            rres.end("OK");
+                                        }                        
+                                    }
+                                )                    
+                            }
+                        )
+                    }
                     else if(post.events[0].message.text == '@儲值'){
                         
                         let text = {
@@ -1330,6 +1354,23 @@ app.post('/withdraw', (req,rres)=>{
                                 pushmessage([text],line_id);
                                 rres.end("OK");
                             }else{
+                                let reply_button =
+                                    {
+                                        "type": "template",
+                                        "altText": "BoxFlow有消息，請借台手機開啟",
+                                        "template": {
+                                            "type": "buttons",                            
+                                            "text": "沒錢了，要不要借錢領錢？",                            
+                                            "actions": [
+                                                {
+                                                    "type": "message",
+                                                    "label": "按我借領",
+                                                    "text": "@借領"
+                                                }                                         
+                                            ]
+                                        }
+                                };
+                                pushmessage([reply_button],line_id);
                                 rres.end("NOT OK")
                             }                            
                         }
