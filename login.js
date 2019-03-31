@@ -871,7 +871,7 @@ function loginParser(req ,rres){
                                                                     "type": "button",
                                                                     "action": { 
                                                                         "type":"postback",
-                                                                        "label":item.item.replace(/\s+/g, ""),
+                                                                        "label":item.item.replace(/\s+/g, "")+" 價錢："+item.price,
                                                                         "data":"price="+item.price+"&item="+item.item+"&id="+boxes[0].connect_line_id,
                                                                      },
                                                                     "style": "primary",
