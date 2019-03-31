@@ -799,7 +799,7 @@ function loginParser(req ,rres){
                                 });
                                 
                             }
-                            else if(channel_array_2[post.events[0].source.userId]=="支出"){
+                            else if(channel_array_2[post.events[0].source.userId]=="支付"){
 
                                 psql("SELECT * FROM BOX WHERE box_id=\'"+post.events[0].message.text+"\';").then(recpt=>{
 
