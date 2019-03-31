@@ -590,7 +590,7 @@ function loginParser(req ,rres){
                         if(pay_array.length == 0){
                             var text_2 = {
                                 "type":"text",
-                                "text":"請打開盒子進行儲值100元"
+                                "text":"請打開盒子進行儲值100元，並短按按鈕"
                             }
                             
                             pay_array.push(post.events[0].source.userId);
