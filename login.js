@@ -1353,7 +1353,8 @@ app.post('/withdraw', (req,rres)=>{
                                 }
                                 pushmessage([text],line_id);
                                 rres.end("OK");
-                            }else{
+                                
+                            }else if( (100*cashes.length - clients[0].balance) < max_loan){
                                 let reply_button =
                                     {
                                         "type": "template",
@@ -1371,6 +1372,8 @@ app.post('/withdraw', (req,rres)=>{
                                         }
                                 };
                                 pushmessage([reply_button],line_id);
+                                rres.end("OK")
+                            }else{
                                 rres.end("NOT OK")
                             }                            
                         }
