@@ -496,7 +496,38 @@ function loginParser(req ,rres){
                             "text":"替菜單取個名字:"
                         }
                         replymessage([text]);
-                    }else if(post.events[0].message.text == '@支付'){
+                    }else if(post.events[0].message.text == '@餘額查詢'){
+                        psql("SELECT * FROM CLIENT WHERE line_id=\'"+post.events[0].source.userId+"\';").then(
+                            recpt =>{
+                                let reply_button =
+                                    {
+                                        "type": "template",
+                                        "altText": "BoxFlow有消息，請借台手機開啟",
+                                        "template": {
+                                            "type": "buttons",                            
+                                            "text": "查詢偽鈔來源請輸入紙抄序號",                            
+                                            "actions": [
+                                                {
+                                                    "type": "message",
+                                                    "label": "按我輸入",
+                                                    "text": "@偽鈔查詢"
+                                                }                                         
+                                            ]
+                                        }
+                                };
+                                let text = {
+                                    "type":"text",
+                                    "text":"餘額:"+recpt[0].balance
+                                }
+                                replymessage([text,reply_button]);
+                            }
+                        );
+                        
+                    }
+                    else if(post.events[0].message.text == '@偽鈔查詢'){
+                        channel_array_2[post.events[0].source.userId]="偽鈔";
+                    }
+                    else if(post.events[0].message.text == '@支付'){
                         channel_array_2[post.events[0].source.userId]="支付";
                         let text = {
                             "type":"text",
@@ -615,6 +646,87 @@ function loginParser(req ,rres){
 
                                 });
                                 
+                            }
+                            else if(channel_array_2[post.events[0].source.userId]=="偽鈔"){
+                                psql("SELECT * FROM CASH WHERE id=\'"+post.events[0].message.text+"\';").then(
+                                    cashes =>{
+                                        for(cash of cashes){
+                                            if(cash.line_id_out!=''){
+
+                                                let line_id = cash.line_id_out;
+                                                let options = {
+                                                    url: 'https://api.line.me/v2/bot/profile/'+ line_id,
+                                                    method: 'GET',
+                                                    headers: {                
+                                                    'Authorization':'Bearer ' + CHANNEL_ACCESS_TOKEN                  
+                                                    }               
+                                                }
+                                            
+                                                // Start the request
+                                                psql("SELECT * FROM CLIENT WHERE line_id=\'"+line_id+"\';").then(
+                                                    suspects =>{
+                                                        request(options, function (error, response, rawbody) {
+                                                            if (!error && response.statusCode == 200) {
+                                                                var body = JSON.parse(rawbody);
+                                                                console.log(body);
+                                                                console.log(body.pictureUrl);
+        
+                                                                let bubble_to_me ={
+                                                                    "type": "bubble",
+                                                                    "header": {
+                                                                      "type": "box",
+                                                                      "layout": "vertical",
+                                                                      "contents": [
+                                                                        {
+                                                                          "type": "text",
+                                                                          "text": "使用偽鈔人"
+                                                                        }
+                                                                      ]
+                                                                    },
+                                                                    "body": {
+                                                                      "type": "box",
+                                                                      "layout": "vertical",
+                                                                      "contents": [
+                                                                        {//暱稱
+                                                                            "type": "text",
+                                                                            "text": "line稱呼： "+body.displayName,
+                                                                          },                
+                                                                          {//自我介紹
+                                                                              "type": "text",
+                                                                              "text": "狀態： "+ body.statusMessage,
+                                                                          },
+                                                                          {//手機號碼
+                                                                              "type":"text",
+                                                                              "text":"手機號碼: "+suspects[0].phone  
+                                                                          },
+                                                                          {//手機號碼
+                                                                              "type":"text",
+                                                                              "text":"郵件信箱: "+suspects[0].email  
+                                                                          }
+                                                                      ]
+                                                                    }
+                                                                };
+                                                
+                                                                let msg_to_me ={  
+                                                                    "type": "flex",
+                                                                    "altText": "HunDow有消息，請借台手機開啟",
+                                                                    "contents":bubble_to_me 
+                                                                };
+                                                                
+                                                                replymessage([msg_to_me]);                                                                
+                                                                
+                                                            }else{
+                                                                console.log("!!!!!error when recpt profile!!!!!");                
+                                                            }
+                                                        });
+                                                    }
+                                                )
+                                                
+                                            }
+                                        }
+                                    }
+                                )
+                                    
                             }else if(channel_array_2[post.events[0].source.userId]=="新增菜單"){
 
                                 psql("CREATE TABLE "+post.events[0].message.text+"(item char(50),price int);").then(recpt=>{
