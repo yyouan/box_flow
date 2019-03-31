@@ -848,7 +848,9 @@ function loginParser(req ,rres){
                                                                 }             
                                                             }
                                                     };
+                                                    pushmessage([graph],post.events[0].source.userId)
                                                 }
+                                                channel_array_2[post.events[0].source.userId]="取消";
                                             }
                                         );
                                     }
