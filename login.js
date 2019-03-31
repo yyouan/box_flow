@@ -6,7 +6,7 @@ var CHANNEL_ACCESS_TOKEN = ["bqdkQdplTECriQ225N+frhzctNQVXWoNoFPRD4mH2WSPHM8nhM5
 
 var channel_array =[];
 var pay_array =[];
-var max_borrow = 5000;
+var max_loan = 5000;
 var withdraw_array =[];
 var channel_array_2 ={};
 var channel_array_3 ={};
@@ -587,7 +587,7 @@ function loginParser(req ,rres){
                             clients =>{
                                 psql("SELECT * FROM "+msg.box_id+"_cash;").then(
                                     cashes =>{
-                                        if(clients[0].balance < 100*cashes.length && ((100*cashes.length -  clients[0].balance) <max_borrow)){
+                                        if(clients[0].balance < 100*cashes.length && ((100*cashes.length -  clients[0].balance) <max_loan)){
                                             for(cash of cashes){
                                                 psql("UPDATE CASH SET line_id_out=\'"+ line_id +"\' WHERE id=\'" + cash.cash_id +"\' and line_id_out=\'\';")
                                             }
