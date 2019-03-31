@@ -223,7 +223,7 @@ function loginParser(req ,rres){
             if("item" in data){
                 let price = parseInt(data.price);
                 let item = data.item;
-                let money_in = channel_array_3[post.events[0].source.userId];
+                let money_in = data.id;
                 let money_out= post.events[0].source.userId;
                 psql("SELECT * FROM CLIENT WHERE line_id=\'"+money_out+"\';").then(
                     clients =>{
@@ -558,6 +558,7 @@ function loginParser(req ,rres){
                                     
                                     respond.quickReply.items.push(box_option);
                                 }
+                                
                                 replymessage([text,respond])
                             }
                         );
@@ -841,7 +842,7 @@ function loginParser(req ,rres){
                                                                     "action": { 
                                                                         "type":"postback",
                                                                         "label":item.item.replace(/\s+/g, ""),
-                                                                        "data":"price="+item.price+"&item="+item.item,
+                                                                        "data":"price="+item.price+"&item="+item.item+"&id="+boxes.connect_line_id,
                                                                      },
                                                                     "style": "primary",
                                                                     "color": "#ffbb00"
