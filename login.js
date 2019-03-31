@@ -807,7 +807,7 @@ function loginParser(req ,rres){
                                 psql("SELECT * FROM BOX WHERE box_id=\'"+post.events[0].message.text+"\';").then(
 
                                     boxes =>{
-                                        channel_array_3[post.events[0].source.userId] = boxes.connect_line_id;
+                                        channel_array_3[post.events[0].source.userId] = boxes[0].connect_line_id;
                                         psql("SELECT * FROM " +boxes[0].menu_name+";" ).then(
                                             items=>{
                                                 for(item of items){
@@ -842,7 +842,7 @@ function loginParser(req ,rres){
                                                                     "action": { 
                                                                         "type":"postback",
                                                                         "label":item.item.replace(/\s+/g, ""),
-                                                                        "data":"price="+item.price+"&item="+item.item+"&id="+boxes.connect_line_id,
+                                                                        "data":"price="+item.price+"&item="+item.item+"&id="+boxes[0].connect_line_id,
                                                                      },
                                                                     "style": "primary",
                                                                     "color": "#ffbb00"
