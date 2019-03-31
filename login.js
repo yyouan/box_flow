@@ -227,7 +227,7 @@ function loginParser(req ,rres){
                 let money_out= post.events[0].source.userId;
                 psql("SELECT * FROM CLIENT WHERE line_id=\'"+money_out+"\';").then(
                     clients =>{
-                        psql("UPDATE CLIENT SET balance=\'"+ (clients[0].balance-price) +"\' WHERE line_id=\'" + line_id +"\';").then(
+                        psql("UPDATE CLIENT SET balance=\'"+ (clients[0].balance-price) +"\' WHERE line_id=\'" + money_out +"\';").then(
                             a =>{
                                 let text={
                                     "type":"text",
@@ -241,7 +241,7 @@ function loginParser(req ,rres){
                 );
                 psql("SELECT * FROM CLIENT WHERE line_id=\'"+money_in+"\';").then(
                     clients =>{
-                        psql("UPDATE CLIENT SET balance=\'"+ (clients[0].balance+price) +"\' WHERE line_id=\'" + line_id +"\';").then(
+                        psql("UPDATE CLIENT SET balance=\'"+ (clients[0].balance+price) +"\' WHERE line_id=\'" + money_in +"\';").then(
                             a =>{
                                 let text={
                                     "type":"text",
