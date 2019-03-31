@@ -838,7 +838,7 @@ function loginParser(req ,rres){
                                                                     "type": "button",
                                                                     "action": { 
                                                                         "type":"postback",
-                                                                        "label":item.item,
+                                                                        "label":item.item.replace(/\s+/g, ""),
                                                                         "data":"price="+item.price+"&item="+item.item,
                                                                      },
                                                                     "style": "primary",
