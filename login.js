@@ -1336,3 +1336,17 @@ app.post('/withdraw', (req,rres)=>{
    });    
     
 });
+
+app.get('/noposit', (req,rres)=>{
+    if("deposit" in msg && pay_array.length == 1){
+        console.log("deposit");
+        let line_id = pay_array[0];
+        pay_array = [];
+        let text={
+            "type":"text",
+            "text":"沒有放錢喔，不要亂按按鈕"
+        }
+        pushmessage([text],line_id)
+    }
+    rres.end("OK");    
+});
