@@ -677,7 +677,7 @@ function loginParser(req ,rres){
                                 psql("SELECT * FROM CASH WHERE id=\'"+post.events[0].message.text+"\';").then(
                                     cashes =>{
                                         for(cash of cashes){
-                                            if(cash.line_id_out ==''){
+                                            if(true){
 
                                                 let line_id = cash.line_id_out;
                                                 let options = {
