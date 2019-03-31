@@ -801,7 +801,7 @@ function loginParser(req ,rres){
                             }
                             else if(channel_array_2[post.events[0].source.userId]=="支付"){
 
-                                psql("SELECT * FROM BOX WHERE box_id=\'"+post.events[0].message.text+"\';").then(recpt=>{
+                                psql("SELECT * FROM BOX WHERE box_id=\'"+post.events[0].message.text+"\';").then(
 
                                     boxes =>{
                                         channel_array_3[post.events[0].source.userId] = boxes.connect_line_id;
@@ -855,7 +855,7 @@ function loginParser(req ,rres){
                                         );
                                     }
 
-                                });
+                                );
                                 channel_array_2[post.events[0].source.userId]=="取消";
                             }
                             else if(channel_array_2[post.events[0].source.userId]=="新增價位"){
