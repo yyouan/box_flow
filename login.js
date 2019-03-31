@@ -794,7 +794,7 @@ function loginParser(req ,rres){
                                     }
                                     replymessage([text]);                                   
                                     channel_array_2[post.events[0].source.userId]="新增價位";
-                                    channel_array_3[post.events[0].source.userId]=post.events[0].message.text;
+                                    channel_array_3[post.events[0].source.userId]= post.events[0].message.text;
 
                                 });
                                 
@@ -867,7 +867,7 @@ function loginParser(req ,rres){
                                         "text":"品項:"
                                     }
                                     
-                                    psql("UPDATE "+channel_array_3[post.events[0].source.userId]+" SET price="+ int(post.events[0].message.text) +" WHERE item=\'"+channel_array_3[post.events[0].source.userId]+"\';").then(
+                                    psql("UPDATE "+channel_array_3[post.events[0].source.userId]+" SET price="+ parseInt(post.events[0].message.text,10) +" WHERE item=\'"+channel_array_3[post.events[0].source.userId]+"\';").then(
                                         aa=>{
                                             replymessage([text]);                                            
                                         }
