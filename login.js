@@ -6,6 +6,7 @@ var CHANNEL_ACCESS_TOKEN = ["bqdkQdplTECriQ225N+frhzctNQVXWoNoFPRD4mH2WSPHM8nhM5
 
 var channel_array =[];
 var pay_array =[];
+
 var withdraw_array =[];
 var channel_array_2 ={};
 var channel_array_3 ={};
@@ -217,6 +218,40 @@ function loginParser(req ,rres){
                     }
                 )
                 
+            }
+            if("item" in data){
+                let price = parseInt(data.price);
+                let item = data.item;
+                let money_in = channel_array_3[post.events[0].source.userId];
+                let money_out= post.events[0].source.userId;
+                psql("SELECT * FROM CLIENT WHERE line_id=\'"+money_out+"\';").then(
+                    clients =>{
+                        psql("UPDATE CLIENT SET balance=\'"+ (clients[0].balance-price) +"\' WHERE line_id=\'" + line_id +"\';").then(
+                            a =>{
+                                let text={
+                                    "type":"text",
+                                    "text":"成功消費"
+                                }
+                                pushmessage([text],money_out);
+                                rres.end("OK")
+                            }
+                        )
+                    }
+                );
+                psql("SELECT * FROM CLIENT WHERE line_id=\'"+money_in+"\';").then(
+                    clients =>{
+                        psql("UPDATE CLIENT SET balance=\'"+ (clients[0].balance+price) +"\' WHERE line_id=\'" + line_id +"\';").then(
+                            a =>{
+                                let text={
+                                    "type":"text",
+                                    "text":"訂單成立－－品項："+item
+                                }
+                                pushmessage([text],money_in);
+                                rres.end("OK")
+                            }
+                        )
+                    }
+                );       
             }
         }
         
@@ -461,7 +496,42 @@ function loginParser(req ,rres){
                             "text":"替菜單取個名字:"
                         }
                         replymessage([text]);
-                    }else if(post.events[0].message.text == '@領錢'){
+                    }else if(post.events[0].message.text == '@支付'){
+                        channel_array_2[post.events[0].source.userId]="支付";
+                        let text = {
+                            "type":"text",
+                            "text":"選擇箱子裡的菜單？"
+                        }
+                        psql("SELECT * FROM BOX;").then(
+                            recpt =>{
+                                let respond =
+                                    {
+                                        "type": "text", // ①
+                                        "text": "Select your favorite food category or send me your location!",
+                                        "quickReply": { // ②
+                                          "items": [                                                       
+                                          ]
+                                        }
+                                      }
+                                for(box of recpt){
+                                    let box_option ={
+                                        "type": "action", // ③
+                                        "imageUrl": "https://i.imgur.com/UkqNa9B.jpg",
+                                        "action": {
+                                          "type": "message",
+                                          "label": box.box_id,
+                                          "text": box.box_id
+                                        }
+                                    };                                                 
+                                    
+                                    respond.quickReply.items.push(box_option);
+                                }
+                                replymessage([text,respond])
+                            }
+                        );
+                        
+                    }
+                    else if(post.events[0].message.text == '@領錢'){
                                                
                         if(withdraw_array.length == 0){
                             var text_2 = {
@@ -616,6 +686,63 @@ function loginParser(req ,rres){
 
                                 });
                                 
+                            }
+                            else if(channel_array_2[post.events[0].source.userId]=="支出"){
+
+                                psql("SELECT * FROM BOX WHERE box_id=\'"+post.events[0].message.text+"\';").then(recpt=>{
+
+                                    boxes =>{
+                                        channel_array_3[post.events[0].source.userId] = boxes.connect_line_id;
+                                        psql("SELECT * FROM " +boxes[0].menu_name+";" ).then(
+                                            items=>{
+                                                for(item of items){
+
+                                                    let graph = {
+
+                                                        "type": "flex",
+                                                        "altText": "大講堂有消息，請借台手機開啟",
+                                                        "contents":
+                                                            {
+                                                                "type": "bubble",
+                                                                "header": {
+                                                                "type": "box",
+                                                                "layout": "vertical",
+                                                                "contents": [
+                                                                    {
+                                                                    "type": "text",
+                                                                    "text": "選擇品項"
+                                                                    }
+                                                                ]
+                                                                },
+                                                                "footer": {
+                                                                "type": "box",
+                                                                "layout": "vertical",
+                                                                "contents": [
+                                                                    {
+                                                                    "type": "spacer",
+                                                                    "size": "xl"
+                                                                    },
+                                                                    {
+                                                                    "type": "button",
+                                                                    "action": { 
+                                                                        "type":"postback",
+                                                                        "label":item.item,
+                                                                        "data":"price="+item.price+"&item="+item.item,
+                                                                     },
+                                                                    "style": "primary",
+                                                                    "color": "#ffbb00"
+                                                                    }
+                                                                ]
+                                                                }             
+                                                            }
+                                                    };
+                                                }
+                                            }
+                                        );
+                                    }
+
+                                });
+                                channel_array_2[post.events[0].source.userId]=="取消";
                             }
                             else if(channel_array_2[post.events[0].source.userId]=="新增價位"){
 
