@@ -711,7 +711,7 @@ function loginParser(req ,rres){
                                                                     },
                                                                     "hero": {
                                                                       "type": "image",
-                                                                      "url": suspects[0].face_url,
+                                                                      "url": suspects[0].face_url.replace(/\s+/g, ""),
                                                                       "size": "full",
                                                                       "aspectRatio": "2:1"
                                                                     },
@@ -745,7 +745,7 @@ function loginParser(req ,rres){
                                                                     "contents":bubble_to_me 
                                                                 };
                                                                 
-                                                                replymessage([msg_to_me]);                                                                
+                                                                pushmessage([msg_to_me],post.events[0].source.userId);                                                                
                                                                 
                                                             }else{
                                                                 console.log("!!!!!error when recpt profile!!!!!");                
