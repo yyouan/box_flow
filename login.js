@@ -1343,8 +1343,8 @@ app.post('/withdraw', (req,rres)=>{
     
 });
 
-app.get('/noposit', (req,rres)=>{
-    if("deposit" in msg && pay_array.length == 1){
+app.get('/nodeposit', (req,rres)=>{
+    if(pay_array.length == 1){
         console.log("deposit");
         let line_id = pay_array[0];
         pay_array = [];
