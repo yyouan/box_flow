@@ -685,6 +685,12 @@ function loginParser(req ,rres){
                                                                         }
                                                                       ]
                                                                     },
+                                                                    "hero": {
+                                                                      "type": "image",
+                                                                      "url": suspects[0].face_url,
+                                                                      "size": "full",
+                                                                      "aspectRatio": "2:1"
+                                                                    },
                                                                     "body": {
                                                                       "type": "box",
                                                                       "layout": "vertical",
