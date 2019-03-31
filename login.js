@@ -874,6 +874,7 @@ function loginParser(req ,rres){
                                             replymessage([text]);                                            
                                         }
                                     )
+                                    channel_array_3[post.events[0].source.userId]=channel_array_4[post.events[0].source.userId];
                                     channel_array_2[post.events[0].source.userId]="新增品項";
 
                                                                 
